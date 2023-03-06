@@ -32,7 +32,7 @@ namespace RedisCacheDemo.Controllers
                 return cacheData;
             }
 
-            var expirationTime = DateTimeOffset.Now.AddMinutes(5.0);
+            var expirationTime = DateTimeOffset.Now.AddMinutes(50.0);
             cacheData = Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
