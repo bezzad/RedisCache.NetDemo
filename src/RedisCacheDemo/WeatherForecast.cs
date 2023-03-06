@@ -2,7 +2,7 @@ namespace RedisCacheDemo
 {
     public class WeatherForecast
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
 
         public DateTime Date { get; set; }
 

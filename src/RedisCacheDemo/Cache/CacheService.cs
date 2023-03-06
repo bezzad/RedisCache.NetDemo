@@ -42,5 +42,10 @@ namespace RedisCacheDemo.Cache
             }
             return false;
         }
+
+        public void Clear()
+        {
+            _db.Execute("FLUSHDB");
+        }
     }
 }

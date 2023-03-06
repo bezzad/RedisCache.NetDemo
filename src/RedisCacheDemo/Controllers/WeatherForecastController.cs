@@ -43,7 +43,7 @@ namespace RedisCacheDemo.Controllers
         }
 
         [HttpGet(nameof(WeatherForecast))]
-        public WeatherForecast Get(int id)
+        public WeatherForecast Get(string id)
         {
             WeatherForecast filteredData;
             var cacheData = _cacheService.GetData<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
@@ -75,11 +75,17 @@ namespace RedisCacheDemo.Controllers
         }
 
         [HttpDelete("deleteWeatherForecast")]
-        public void Delete(int id)
+        public void Delete(string id)
         {
             var cacheData = Get().ToDictionary(key => key.Id, val => val);
             cacheData.Remove(id);
             Save(cacheData.Values);
+        }
+
+        [HttpDelete("ClearAll")]
+        public void Delete()
+        {
+            _cacheService.Clear();
         }
 
         private void Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterMinutes = 50)

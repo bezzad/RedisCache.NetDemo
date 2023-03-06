@@ -28,5 +28,10 @@ namespace RedisCacheDemo.Cache
         /// <param name="key"></param>
         /// <returns></returns>
         object RemoveData(string key);
+
+        /// <summary>
+        /// Clear all data
+        /// </summary>
+        void Clear();
     }
 }
