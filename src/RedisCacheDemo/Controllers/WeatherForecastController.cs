@@ -90,7 +90,7 @@ namespace RedisCacheDemo.Controllers
 
         private Dictionary<int, WeatherForecast> GetKeyValues()
         {
-            var data = _cacheService.GetData<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
+            var data = _cacheService.Get<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
             return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<int, WeatherForecast>();
         }
     }

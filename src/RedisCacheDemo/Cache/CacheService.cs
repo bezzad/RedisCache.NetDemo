@@ -12,28 +12,58 @@ namespace RedisCacheDemo.Cache
             _db = connection.GetDatabase();
         }
 
-        public T GetData<T>(string key)
+        public async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int expireAfterSeconds)
         {
-            var value = _db.StringGet(key);
-
-            if (!string.IsNullOrEmpty(value))
+            if (TryGetValue(key, out T value) == false)
             {
-                return JsonSerializer.Deserialize<T>(value);
+                var expiryTime = TimeSpan.FromSeconds(expireAfterSeconds);
+                value = await acquire();
+                _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
             }
 
-            return default;
+            return value;
+        }
+
+        public T Get<T>(string key, Func<T> acquire, int expireAfterSeconds)
+        {
+            if(TryGetValue(key, out T value) == false)
+            {
+                var expiryTime = TimeSpan.FromSeconds(expireAfterSeconds);
+                value = acquire();
+                _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
+            }
+
+            return value;
+        }
+
+        public T Get<T>(string key)
+        {
+            TryGetValue(key, out T value);
+            return value;
+        }
+
+        public bool TryGetValue<T>(string key, out T value)
+        {
+            var cacheValue = _db.StringGet(key);
+            if(string.IsNullOrWhiteSpace(cacheValue) == false)
+            {
+                value = JsonSerializer.Deserialize<T>(cacheValue);
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
         {
             TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-
             var isSet = _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
 
             return isSet;
         }
 
-        public object RemoveData(string key)
+        public object Remove(string key)
         {
             bool _isKeyExist = _db.KeyExists(key);
             if (_isKeyExist == true)
@@ -47,5 +77,7 @@ namespace RedisCacheDemo.Cache
         {
             _db.Execute("FLUSHDB");
         }
+
+        
     }
 }
