@@ -1,13 +1,16 @@
+using System.Text.Json.Serialization;
+
 namespace RedisCacheDemo
 {
     public class WeatherForecast
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString("N");
+        public int Id { get; set; } = DateTime.Now.GetHashCode();
 
         public DateTime Date { get; set; }
 
         public int TemperatureC { get; set; }
 
+        [JsonIgnore]
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
         public string Summary { get; set; }

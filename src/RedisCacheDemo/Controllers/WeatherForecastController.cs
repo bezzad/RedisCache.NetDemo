@@ -25,59 +25,53 @@ namespace RedisCacheDemo.Controllers
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
-            var cacheData = _cacheService.GetData<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
-            if (cacheData != null)
+            var cacheData = GetKeyValues();
+            if (cacheData.Any())
             {
-                return cacheData;
+                return cacheData.Values;
             }
 
-            cacheData = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var newData = Enumerable.Range(1, 10).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             }).ToArray();
 
-            Save(cacheData, 50);
-            return cacheData;
+            Save(newData, 50);
+            return newData;
         }
 
         [HttpGet(nameof(WeatherForecast))]
-        public WeatherForecast Get(string id)
+        public WeatherForecast Get(int id)
         {
-            WeatherForecast filteredData;
-            var cacheData = _cacheService.GetData<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
-            if (cacheData != null)
-            {
-                filteredData = cacheData.Where(x => x.Id == id).FirstOrDefault();
-                return filteredData;
-            }
+            var cacheData = GetKeyValues();
+            cacheData.TryGetValue(id, out var filteredData);
 
-            cacheData = Get();
-            return cacheData.Where(w => w.Id == id).FirstOrDefault();
+            return filteredData;
         }
 
         [HttpPost("addWeatherForecast")]
         public async Task<WeatherForecast> Post(WeatherForecast value)
         {
-            var cacheData = Get().ToList();
-            cacheData.Add(value);
-            Save(cacheData);
+            var cacheData = GetKeyValues();
+            cacheData[value.Id] = value;
+            Save(cacheData.Values);
             return value;
         }
 
         [HttpPut("updateWeatherForecast")]
         public void Put(WeatherForecast WeatherForecast)
         {
-            var cacheData = Get().ToDictionary(key => key.Id, val => val);
+            var cacheData = GetKeyValues();
             cacheData[WeatherForecast.Id] = WeatherForecast;
             Save(cacheData.Values);
         }
 
         [HttpDelete("deleteWeatherForecast")]
-        public void Delete(string id)
+        public void Delete(int id)
         {
-            var cacheData = Get().ToDictionary(key => key.Id, val => val);
+            var cacheData = GetKeyValues();
             cacheData.Remove(id);
             Save(cacheData.Values);
         }
@@ -92,6 +86,12 @@ namespace RedisCacheDemo.Controllers
         {
             var expirationTime = DateTimeOffset.Now.AddMinutes(expireAfterMinutes);
             _cacheService.SetData(nameof(WeatherForecast), weatherForecasts, expirationTime);
+        }
+
+        private Dictionary<int, WeatherForecast> GetKeyValues()
+        {
+            var data = _cacheService.GetData<IEnumerable<WeatherForecast>>(nameof(WeatherForecast));
+            return data?.ToDictionary(key => key.Id, val => val) ?? new Dictionary<int, WeatherForecast>();
         }
     }
 }
