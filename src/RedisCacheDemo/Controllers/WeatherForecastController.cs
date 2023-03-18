@@ -23,7 +23,7 @@ namespace RedisCacheDemo.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<IEnumerable<WeatherForecast>> Get()
         {
             var cacheData = GetKeyValues();
             if (cacheData.Any())
@@ -38,7 +38,7 @@ namespace RedisCacheDemo.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             }).ToArray();
 
-            Save(newData, 50);
+            await Save(newData, 50).ConfigureAwait(false);
             return newData;
         }
 
@@ -56,36 +56,36 @@ namespace RedisCacheDemo.Controllers
         {
             var cacheData = GetKeyValues();
             cacheData[value.Id] = value;
-            Save(cacheData.Values);
+            await Save(cacheData.Values).ConfigureAwait(false);
             return value;
         }
 
         [HttpPut("updateWeatherForecast")]
-        public void Put(WeatherForecast WeatherForecast)
+        public async void Put(WeatherForecast WeatherForecast)
         {
             var cacheData = GetKeyValues();
             cacheData[WeatherForecast.Id] = WeatherForecast;
-            Save(cacheData.Values);
+            await Save(cacheData.Values).ConfigureAwait(false);
         }
 
         [HttpDelete("deleteWeatherForecast")]
-        public void Delete(int id)
+        public async Task Delete(int id)
         {
             var cacheData = GetKeyValues();
             cacheData.Remove(id);
-            Save(cacheData.Values);
+            await Save(cacheData.Values).ConfigureAwait(false);
         }
 
         [HttpDelete("ClearAll")]
-        public void Delete()
+        public async Task Delete()
         {
-            _cacheService.Clear();
+            await _cacheService.ClearAsync();
         }
 
-        private void Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterMinutes = 50)
+        private Task<bool> Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterMinutes = 50)
         {
             var expirationTime = DateTimeOffset.Now.AddMinutes(expireAfterMinutes);
-            _cacheService.SetData(nameof(WeatherForecast), weatherForecasts, expirationTime);
+            return _cacheService.SetDataAsync(nameof(WeatherForecast), weatherForecasts, expirationTime);
         }
 
         private Dictionary<int, WeatherForecast> GetKeyValues()

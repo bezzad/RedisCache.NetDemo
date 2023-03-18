@@ -40,7 +40,7 @@
         bool TryGetValue<T>(string key, out T value);
 
         /// <summary> 
-        /// Set Data with Value and Expiration Time of Key
+        /// Set data with Value and Expiration Time of Key
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
@@ -48,6 +48,15 @@
         /// <param name="expirationTime"></param>
         /// <returns></returns>
         bool SetData<T>(string key, T value, DateTimeOffset expirationTime);
+
+        /// <summary> 
+        /// Set data as async with Value and Expiration Time of Key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="expirationTime"></param>
+        Task<bool> SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime);
 
         /// <summary>
         /// Remove Data 
@@ -60,5 +69,10 @@
         /// Clear all data
         /// </summary>
         void Clear();
+
+        /// <summary>
+        /// Clear all data
+        /// </summary>
+        Task ClearAsync();
     }
 }

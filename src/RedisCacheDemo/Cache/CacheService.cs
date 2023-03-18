@@ -26,7 +26,7 @@ namespace RedisCacheDemo.Cache
 
         public T Get<T>(string key, Func<T> acquire, int expireAfterSeconds)
         {
-            if(TryGetValue(key, out T value) == false)
+            if (TryGetValue(key, out T value) == false)
             {
                 var expiryTime = TimeSpan.FromSeconds(expireAfterSeconds);
                 value = acquire();
@@ -45,7 +45,7 @@ namespace RedisCacheDemo.Cache
         public bool TryGetValue<T>(string key, out T value)
         {
             var cacheValue = _db.StringGet(key);
-            if(string.IsNullOrWhiteSpace(cacheValue) == false)
+            if (string.IsNullOrWhiteSpace(cacheValue) == false)
             {
                 value = JsonSerializer.Deserialize<T>(cacheValue);
                 return true;
@@ -63,6 +63,12 @@ namespace RedisCacheDemo.Cache
             return isSet;
         }
 
+        public async Task<bool> SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime)
+        {
+            TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
+            return await _db.StringSetAsync(key, JsonSerializer.Serialize(value), expiryTime);
+        }
+
         public object Remove(string key)
         {
             bool _isKeyExist = _db.KeyExists(key);
@@ -78,6 +84,9 @@ namespace RedisCacheDemo.Cache
             _db.Execute("FLUSHDB");
         }
 
-        
+        public Task ClearAsync()
+        {
+            return _db.ExecuteAsync("FLUSHDB");
+        }
     }
 }
