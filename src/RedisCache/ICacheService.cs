@@ -1,4 +1,7 @@
-﻿namespace RedisCache
+﻿using System;
+using System.Threading.Tasks;
+
+namespace RedisCache
 {
     public interface ICacheService
     {
