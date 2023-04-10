@@ -15,7 +15,7 @@ namespace RedisCache.Benchmark
         const string KeyPrefix = "test_";
 
         [Params(1, 10, 100)]
-        int RepeatCount { get; set; }
+        public int RepeatCount { get; set; }
 
         [GlobalSetup]
         public void GlobalSetup()
