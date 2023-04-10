@@ -13,4 +13,8 @@
     <ProjectReference Include="..\RedisCache\RedisCache.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="BenchmarkDotNet.Artifacts\" />
+  </ItemGroup>
+
 </Project>
