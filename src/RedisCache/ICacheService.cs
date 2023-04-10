@@ -1,4 +1,4 @@
-﻿namespace RedisCacheDemo.Cache
+﻿namespace RedisCache
 {
     public interface ICacheService
     {

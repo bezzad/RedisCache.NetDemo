@@ -1,7 +1,7 @@
 ﻿using StackExchange.Redis;
 using System.Text.Json;
 
-namespace RedisCacheDemo.Cache
+namespace RedisCache
 {
     public class CacheService : ICacheService
     {

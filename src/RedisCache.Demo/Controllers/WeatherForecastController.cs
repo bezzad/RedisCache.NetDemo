@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using RedisCacheDemo.Cache;
+using RedisCache;
 
 namespace RedisCacheDemo.Controllers
 {
@@ -55,7 +55,7 @@ namespace RedisCacheDemo.Controllers
         public async Task<WeatherForecast[]> PostList(WeatherForecast[] values, int durationMinutes)
         {
             var cacheData = GetKeyValues();
-            foreach(var value in values)
+            foreach (var value in values)
             {
                 cacheData[value.Id] = value;
             }

@@ -1,5 +1,5 @@
 using Microsoft.OpenApi.Models;
-using RedisCacheDemo.Cache;
+using RedisCache;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
