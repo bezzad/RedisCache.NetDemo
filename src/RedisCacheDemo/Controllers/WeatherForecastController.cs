@@ -51,6 +51,18 @@ namespace RedisCacheDemo.Controllers
             return filteredData;
         }
 
+        [HttpPost("addWeatherForecasts")]
+        public async Task<WeatherForecast[]> PostList(WeatherForecast[] values)
+        {
+            var cacheData = GetKeyValues();
+            foreach(var value in values)
+            {
+                cacheData[value.Id] = value;
+            }
+            await Save(cacheData.Values).ConfigureAwait(false);
+            return values;
+        }
+
         [HttpPost("addWeatherForecast")]
         public async Task<WeatherForecast> Post(WeatherForecast value)
         {
