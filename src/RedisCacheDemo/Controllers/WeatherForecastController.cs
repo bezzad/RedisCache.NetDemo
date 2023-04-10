@@ -85,7 +85,7 @@ namespace RedisCacheDemo.Controllers
         private Task<bool> Save(IEnumerable<WeatherForecast> weatherForecasts, double expireAfterMinutes = 50)
         {
             var expirationTime = DateTimeOffset.Now.AddMinutes(expireAfterMinutes);
-            return _cacheService.SetDataAsync(nameof(WeatherForecast), weatherForecasts, expirationTime);
+            return _cacheService.AddOrUpdateAsync(nameof(WeatherForecast), weatherForecasts, expirationTime);
         }
 
         private Dictionary<int, WeatherForecast> GetKeyValues()

@@ -55,18 +55,19 @@ namespace RedisCacheDemo.Cache
             return false;
         }
 
-        public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
+        public bool AddOrUpdate<T>(string key, T value, DateTimeOffset expirationTime, bool fireAndForget = false)
         {
             TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-            var isSet = _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
-
+            var isSet = _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime, When.Always,
+                fireAndForget ? CommandFlags.FireAndForget : CommandFlags.None);
             return isSet;
         }
 
-        public async Task<bool> SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime)
+        public async Task<bool> AddOrUpdateAsync<T>(string key, T value, DateTimeOffset expirationTime, bool fireAndForget = false)
         {
             TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-            return await _db.StringSetAsync(key, JsonSerializer.Serialize(value), expiryTime);
+            return await _db.StringSetAsync(key, JsonSerializer.Serialize(value), expiryTime, When.Always,
+                fireAndForget ? CommandFlags.FireAndForget : CommandFlags.None);
         }
 
         public object Remove(string key)

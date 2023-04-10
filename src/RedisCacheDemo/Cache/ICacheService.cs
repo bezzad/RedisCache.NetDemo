@@ -3,7 +3,7 @@
     public interface ICacheService
     {
         /// <summary>
-        /// Get data using key and if it's not exist create new data and cache it
+        /// Get data using a key or if it's not exist create new data and cache it
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
@@ -13,7 +13,7 @@
         Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int expireAfterSeconds);
 
         /// <summary>
-        /// Get data using key and if it's not exist create new data and cache it
+        /// Get data using a key or if it's not exist create new data and cache it
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
@@ -23,7 +23,7 @@
         T Get<T>(string key, Func<T> acquire, int expireAfterSeconds);
 
         /// <summary>
-        /// Get data using key and if it's not exist get default value
+        /// Get data using a key
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
@@ -47,7 +47,7 @@
         /// <param name="value"></param>
         /// <param name="expirationTime"></param>
         /// <returns></returns>
-        bool SetData<T>(string key, T value, DateTimeOffset expirationTime);
+        bool AddOrUpdate<T>(string key, T value, DateTimeOffset expirationTime, bool fireAndForget = false);
 
         /// <summary> 
         /// Set data as async with Value and Expiration Time of Key
@@ -56,7 +56,7 @@
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="expirationTime"></param>
-        Task<bool> SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime);
+        Task<bool> AddOrUpdateAsync<T>(string key, T value, DateTimeOffset expirationTime, bool fireAndForget = false);
 
         /// <summary>
         /// Remove Data 
