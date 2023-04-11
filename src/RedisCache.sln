@@ -5,9 +5,14 @@ VisualStudioVersion = 17.5.33414.496
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCache.Demo", "RedisCache.Demo\RedisCache.Demo.csproj", "{542C55E5-CD0F-4F2C-BAED-C5123836940B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisCache", "RedisCache\RedisCache.csproj", "{038DAA33-DA81-4A58-8347-C05E93C056C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCache", "RedisCache\RedisCache.csproj", "{038DAA33-DA81-4A58-8347-C05E93C056C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisCache.Benchmark", "RedisCache.Benchmark\RedisCache.Benchmark.csproj", "{C979D3FE-0A29-4683-801D-0F7B2FC67C5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisCache.Benchmark", "RedisCache.Benchmark\RedisCache.Benchmark.csproj", "{C979D3FE-0A29-4683-801D-0F7B2FC67C5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{62F6FE1F-9AF2-4B3D-9D76-1BE2AD3A7E65}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
