@@ -1,13 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using RedisCache.Benchmark;
 using System;
-using System.Diagnostics;
 
 Console.WriteLine("Redis vs. Memory cache performance benchmark");
 
 #if DEBUG
 
-var sw = new Stopwatch();
+var sw = new System.Diagnostics.Stopwatch();
 var x = new BenchmarkManager();
 x.GlobalSetup();
 x.RepeatCount = 1000;
@@ -46,6 +45,6 @@ Console.WriteLine($"{nameof(x.AddGet_FireAndForget_Redis_Async)}() tested. \t{sw
 
 #else
 
-BenchmarkRunner.Run<BenchmarkManager>();
+BenchmarkDotNet.Running.BenchmarkRunner.Run<BenchmarkManager>();
 
 #endif
