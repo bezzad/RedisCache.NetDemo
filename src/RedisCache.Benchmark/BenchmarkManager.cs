@@ -14,6 +14,9 @@ namespace RedisCache.Benchmark
     {
         IMemoryCache _memCache;
         ICacheService _redisCache;
+        HybridCache _hybridCache;
+        const int redisPort = 6379;
+        const string redisIP = "172.23.44.11"; // "172.23.44.11"   "127.0.0.1" 
         const string KeyPrefix = "test_";
         const string ReadKeyPrefix = "test_x";
         const int ExpireDurationSecond = 3600;
@@ -28,9 +31,10 @@ namespace RedisCache.Benchmark
         public void GlobalSetup()
         {
             // Write your initialization code here
-            var connection = ConnectionMultiplexer.Connect("127.0.0.1:6379"); // "172.23.44.11:6379"   "127.0.0.1:6379"
+            var connection = ConnectionMultiplexer.Connect($"{redisIP}:{redisPort}"); 
             _redisCache = new CacheService(connection);
             _memCache = new MemoryCache(new MemoryCacheOptions());
+            _hybridCache = new HybridCache(redisIP, redisPort);
             _data ??= Enumerable.Range(0, 10000).Select(_ => SampleModel.Factory()).ToArray();
         }
 
@@ -80,6 +84,22 @@ namespace RedisCache.Benchmark
             // write cache
             for (var i = 0; i < RepeatCount; i++)
                 await _redisCache.AddOrUpdateAsync(KeyPrefix + i, _data[i], DateTimeOffset.Now.AddSeconds(ExpireDurationSecond), true);
+        }
+
+        [Benchmark]
+        public void Add_Hybrid()
+        {
+            // write cache
+            for (var i = 0; i < RepeatCount; i++)
+                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+        }
+
+        [Benchmark]
+        public async Task Add_Hybrid_Async()
+        {
+            // write cache
+            for (var i = 0; i < RepeatCount; i++)
+                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
         }
 
         [Benchmark]
@@ -133,6 +153,38 @@ namespace RedisCache.Benchmark
                 // don't generate correct data when couldn't find, because its already wrote!
                 var value = await _redisCache.GetAsync(ReadKeyPrefix, () => Task.FromResult(_singleWorseModel.Value), ExpireDurationSecond);
                 ThrowIfIsNotMatch(value, _singleModel.Value);
+            }
+        }
+
+        [Benchmark]
+        public void Get_Hybrid()
+        {
+            // write single cache
+            _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
+
+            // read cache
+            for (var i = 0; i < RepeatCount; i++)
+            {
+                // don't generate correct data when couldn't find, because its already wrote!
+                var value = _hybridCache.Get<SampleModel>(ReadKeyPrefix);
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        [Benchmark]
+        public async Task Get_Hybrid_Async()
+        {
+            // write single cache
+            await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
+
+            // read cache
+            for (var i = 0; i < RepeatCount; i++)
+            {
+                // don't generate correct data when couldn't find, because its already wrote!
+                var value = await _hybridCache.GetAsync<SampleModel>(ReadKeyPrefix);
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
             }
         }
 

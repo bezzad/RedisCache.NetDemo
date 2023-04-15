@@ -12,7 +12,7 @@ Console.WriteLine("Redis vs. Memory cache performance benchmark");
 var sw = new System.Diagnostics.Stopwatch();
 var manager = new BenchmarkManager();
 manager.GlobalSetup();
-manager.RepeatCount = 10000;
+manager.RepeatCount = 1000;
 Console.WriteLine($"Repeating each test {manager.RepeatCount} times");
 Console.WriteLine("\n");
 Console.WriteLine(new string('-', 91));
