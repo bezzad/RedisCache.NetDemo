@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
+using System.Text.Json;
 
 namespace RedisCache.Benchmark
 {
@@ -27,7 +28,7 @@ namespace RedisCache.Benchmark
         public void GlobalSetup()
         {
             // Write your initialization code here
-            var connection = ConnectionMultiplexer.Connect("127.0.0.1:6379");
+            var connection = ConnectionMultiplexer.Connect("127.0.0.1:6379"); // "172.23.44.11:6379"   "127.0.0.1:6379"
             _redisCache = new CacheService(connection);
             _memCache = new MemoryCache(new MemoryCacheOptions());
             _data ??= Enumerable.Range(0, 10000).Select(_ => SampleModel.Factory()).ToArray();
@@ -38,7 +39,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                _memCache.Set(KeyPrefix + i, _data[i], DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
+                _memCache.Set(KeyPrefix + i, JsonSerializer.Serialize(_data[i]), DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
         }
 
         [Benchmark]
@@ -46,7 +47,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                await _memCache.GetOrCreateAsync(KeyPrefix + i, _ => Task.FromResult(_data[i]));
+                await _memCache.GetOrCreateAsync(KeyPrefix + i, _ => Task.FromResult(JsonSerializer.Serialize(_data[i])));
         }
 
         [Benchmark]
@@ -89,22 +90,22 @@ namespace RedisCache.Benchmark
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
-                if (_memCache.TryGetValue(ReadKeyPrefix, out SampleModel value))
-                    ThrowIfIsNotMatch(value, _singleModel.Value);
+                if (_memCache.TryGetValue(ReadKeyPrefix, out string value))
+                    ThrowIfIsNotMatch(JsonSerializer.Deserialize<SampleModel>(value), _singleModel.Value);
         }
 
         [Benchmark]
         public async Task Get_Memory_Async()
         {
             // write single cache
-            _memCache.Set(ReadKeyPrefix, _singleModel.Value, DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
+            _memCache.Set(ReadKeyPrefix, JsonSerializer.Serialize(_singleModel.Value), DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
             {
                 // don't generate correct data when couldn't find, because its already wrote!
-                var value = await _memCache.GetOrCreateAsync(ReadKeyPrefix, _ => Task.FromResult(_singleWorseModel.Value));
-                ThrowIfIsNotMatch(value, _singleModel.Value);
+                var value = await _memCache.GetOrCreateAsync(ReadKeyPrefix, _ => Task.FromResult(JsonSerializer.Serialize(_singleWorseModel.Value)));
+                ThrowIfIsNotMatch(JsonSerializer.Deserialize<SampleModel>(value), _singleModel.Value);
             }
         }
 
@@ -125,33 +126,6 @@ namespace RedisCache.Benchmark
         {
             // write single cache
             await _redisCache.AddOrUpdateAsync(ReadKeyPrefix, _singleModel.Value, DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
-
-            // read cache
-            for (var i = 0; i < RepeatCount; i++)
-            {
-                // don't generate correct data when couldn't find, because its already wrote!
-                var value = await _redisCache.GetAsync(ReadKeyPrefix, () => Task.FromResult(_singleWorseModel.Value), ExpireDurationSecond);
-                ThrowIfIsNotMatch(value, _singleModel.Value);
-            }
-        }
-
-        [Benchmark]
-        public void Get_FireAndForget_Redis()
-        {
-            // write single cache
-            _redisCache.AddOrUpdate(ReadKeyPrefix, _singleModel.Value, DateTimeOffset.Now.AddSeconds(ExpireDurationSecond), true);
-
-            // read cache
-            for (var i = 0; i < RepeatCount; i++)
-                if (_redisCache.TryGetValue(ReadKeyPrefix, out SampleModel value))
-                    ThrowIfIsNotMatch(value, _singleModel.Value);
-        }
-
-        [Benchmark]
-        public async Task Get_FireAndForget_Redis_Async()
-        {
-            // write single cache
-            await _redisCache.AddOrUpdateAsync(ReadKeyPrefix, _singleModel.Value, DateTimeOffset.Now.AddSeconds(ExpireDurationSecond), true);
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)

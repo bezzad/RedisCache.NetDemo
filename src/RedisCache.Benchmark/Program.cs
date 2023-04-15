@@ -1,47 +1,50 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using BenchmarkDotNet.Attributes;
 using RedisCache.Benchmark;
 using System;
+using System.Reflection;
+using System.Threading.Tasks;
 
 Console.WriteLine("Redis vs. Memory cache performance benchmark");
 
 #if DEBUG
 
 var sw = new System.Diagnostics.Stopwatch();
-var x = new BenchmarkManager();
-x.GlobalSetup();
-x.RepeatCount = 1000;
-Console.WriteLine($"Repeating each test {x.RepeatCount} times");
-Console.WriteLine("\n\n");
+var manager = new BenchmarkManager();
+manager.GlobalSetup();
+manager.RepeatCount = 10000;
+Console.WriteLine($"Repeating each test {manager.RepeatCount} times");
+Console.WriteLine("\n");
+Console.WriteLine(new string('-', 91));
+var headerDesc = "|".PadRight(18) + "Test Method Name".PadRight(32) + "|  Duration (milisecond)".PadRight(24) + "  |  Is Async?  |";
+Console.WriteLine(headerDesc);
 
-sw.Start();
-x.AddGet_Memory();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_Memory)}() tested. \t\t\t{sw.Elapsed.TotalNanosecond():N0}ns");
+var methods = typeof(BenchmarkManager).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+foreach (var method in methods)
+{
+    if (method.GetCustomAttribute(typeof(BenchmarkAttribute)) != null)
+    {
+        Console.WriteLine(new string('-', 91));
+        var isAsync = false;
+        sw.Restart();
+        if (method.ReturnType == typeof(Task))
+        {
+            isAsync = true;
+            var task = (Task)method.Invoke(manager, null);
+            await task;
+        }
+        else
+        {
+            method.Invoke(manager, null);
+        }
+        sw.Stop();
 
-sw.Restart();
-await x.AddGet_Memory_Async();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_Memory_Async)}() tested. \t\t\t{sw.Elapsed.TotalNanosecond():N0}ns");
-
-sw.Restart();
-x.AddGet_Redis();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_Redis)}() tested. \t\t\t\t{sw.Elapsed.TotalNanosecond():N0}ns");
-
-sw.Restart();
-await x.AddGet_Redis_Async();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_Redis_Async)}() tested. \t\t\t{sw.Elapsed.TotalNanosecond():N0}ns");
-
-sw.Restart();
-x.AddGet_FireAndForget_Redis();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_FireAndForget_Redis)}() tested. \t\t{sw.Elapsed.TotalNanosecond():N0}ns");
-
-sw.Restart();
-await x.AddGet_FireAndForget_Redis_Async();
-sw.Stop();
-Console.WriteLine($"{nameof(x.AddGet_FireAndForget_Redis_Async)}() tested. \t{sw.Elapsed.TotalNanosecond():N0}ns");
+        var leftDesc = $"| {method.Name}() tested. ".PadRight(50);
+        var rightDesc = $"|   {sw.Elapsed.TotalMilliseconds:N0}ms ".PadRight(25);
+        Console.WriteLine(leftDesc + rightDesc + $" |    {isAsync}".PadRight(15) + "|");
+    }
+}
+Console.WriteLine(new string('-', 91));
 
 #else
 
