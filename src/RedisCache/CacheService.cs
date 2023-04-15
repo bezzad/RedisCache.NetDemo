@@ -8,10 +8,16 @@ namespace RedisCache
     public class CacheService : ICacheService
     {
         private IDatabase _db;
+        const string RedisChangeHandlerChannel = "RedisChangeHandlerChannel";
 
         public CacheService(IConnectionMultiplexer connection)
         {
             _db = connection.GetDatabase();
+            var subscriber = connection.GetSubscriber();
+            subscriber.SubscribeAsync(RedisChangeHandlerChannel, (channel, message) =>
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]: {$"Message {message} received successfully"}");
+            });
         }
 
         public async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int expireAfterSeconds)
@@ -62,14 +68,18 @@ namespace RedisCache
             TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
             var isSet = _db.StringSet(key, JsonSerializer.Serialize(value), expiryTime, When.Always,
                 fireAndForget ? CommandFlags.FireAndForget : CommandFlags.None);
+            _db.Publish(RedisChangeHandlerChannel, key);
             return isSet;
         }
 
         public async Task<bool> AddOrUpdateAsync<T>(string key, T value, DateTimeOffset expirationTime, bool fireAndForget = false)
         {
             TimeSpan expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-            return await _db.StringSetAsync(key, JsonSerializer.Serialize(value), expiryTime, When.Always,
+            var result = await _db.StringSetAsync(key, JsonSerializer.Serialize(value), expiryTime, When.Always,
                 fireAndForget ? CommandFlags.FireAndForget : CommandFlags.None);
+
+            await _db.PublishAsync(RedisChangeHandlerChannel, key);
+            return result;
         }
 
         public object Remove(string key)
@@ -77,6 +87,7 @@ namespace RedisCache
             bool _isKeyExist = _db.KeyExists(key);
             if (_isKeyExist == true)
             {
+                _db.Publish(RedisChangeHandlerChannel, key);
                 return _db.KeyDelete(key);
             }
             return false;
