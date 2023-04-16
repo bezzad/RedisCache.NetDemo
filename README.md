@@ -20,6 +20,10 @@ Redis is an Open Source (BSD Licensed) in-memory Data Structure store used as a 
 Basically, it is used to store the frequently used and some static data inside the cache and use and reserve that as per user requirement.
 There are many data structures present in the Redis which we are able to use like List, Set, Hashing, Stream, and many more to store the data.
 
+## Redis vs. In-Memory caching in single instance benchmark
+
+![Redis vs. InMemory](https://raw.githubusercontent.com/bezzad/RedisCache.NetDemo/main/img/Redis%20vs.%20MemoryCache%20-%20Single%20Instance.png)
+
 ## Installation of Redis Cache with docker
 
 ### Step 1
