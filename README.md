@@ -55,6 +55,12 @@ Build this app and call API methods. So, trace `CacheService` codes to know whic
 
 
 
-## Redis vs. MemoryCache Benchmark
-Redis Add and Read time from local server database = 128 * MemoryCache
-Redis Async Add and Read time from local server datavase = 186 * MemoryCache
+## Redis vs. MemoryCache Benchmark in Single instance
+Test add and read time from local server memory
+Sync    Redis = 128 * MemoryCache
+Async   Redis = 186 * MemoryCache
+
+## Redis vs. MemoryCache Benchmark in 16 instance
+Test add and read time from local server memory with parallel 16 instance
+Sync    Redis = 128 * MemoryCache
+Async   Redis = 186 * MemoryCache
