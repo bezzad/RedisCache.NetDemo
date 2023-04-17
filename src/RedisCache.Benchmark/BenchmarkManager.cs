@@ -14,7 +14,7 @@ namespace RedisCache.Benchmark
     {
         IMemoryCache _memCache;
         ICacheService _redisCache;
-        HybridCache _hybridCache;
+        EasyHybridCache _hybridCache;
         const int redisPort = 6379;
         const string redisIP = "172.23.44.11"; // "172.23.44.11"   "127.0.0.1" 
         const string KeyPrefix = "test_";
@@ -34,7 +34,7 @@ namespace RedisCache.Benchmark
             var connection = ConnectionMultiplexer.Connect($"{redisIP}:{redisPort}"); 
             _redisCache = new CacheService(connection);
             _memCache = new MemoryCache(new MemoryCacheOptions());
-            _hybridCache = new HybridCache(redisIP, redisPort);
+            _hybridCache = new EasyHybridCache(redisIP, redisPort);
             _data ??= Enumerable.Range(0, 10000).Select(_ => SampleModel.Factory()).ToArray();
         }
 

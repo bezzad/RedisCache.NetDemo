@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace RedisCache.Benchmark
 {
-    public class HybridCache
+    public class EasyHybridCache
     {
         private readonly IHybridCachingProvider _provider;
 
-        public HybridCache(string redisIp, int redisPort)
+        public EasyHybridCache(string redisIp, int redisPort)
         {
             IServiceCollection services = new ServiceCollection();
             services.AddEasyCaching(option =>
