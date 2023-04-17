@@ -1,10 +1,11 @@
 ﻿using BenchmarkDotNet.Attributes;
+using HybridRedisCache;
+using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace RedisCache.Benchmark
 {
@@ -14,9 +15,11 @@ namespace RedisCache.Benchmark
     {
         IMemoryCache _memCache;
         ICacheService _redisCache;
-        EasyHybridCache _hybridCache;
+        EasyHybridCache _easyHybridCache;
+        HybridCache _hybridCache;
+
         const int redisPort = 6379;
-        const string redisIP = "172.23.44.11"; // "172.23.44.11"   "127.0.0.1" 
+        const string redisIP = "127.0.0.1"; // "172.23.44.11"   "127.0.0.1" 
         const string KeyPrefix = "test_";
         const string ReadKeyPrefix = "test_x";
         const int ExpireDurationSecond = 3600;
@@ -31,11 +34,18 @@ namespace RedisCache.Benchmark
         public void GlobalSetup()
         {
             // Write your initialization code here
-            var connection = ConnectionMultiplexer.Connect($"{redisIP}:{redisPort}"); 
+            var connection = ConnectionMultiplexer.Connect($"{redisIP}:{redisPort}");
             _redisCache = new CacheService(connection);
             _memCache = new MemoryCache(new MemoryCacheOptions());
-            _hybridCache = new EasyHybridCache(redisIP, redisPort);
+            _easyHybridCache = new EasyHybridCache(redisIP, redisPort);
             _data ??= Enumerable.Range(0, 10000).Select(_ => SampleModel.Factory()).ToArray();
+            _hybridCache = new HybridCache(new HybridCachingOptions()
+            {
+                InstanceName = nameof(BenchmarkManager),
+                DefaultExpirationTime = TimeSpan.FromDays(1),
+                RedisCacheConnectString = $"{redisIP}:{redisPort}",
+                ThrowIfDistributedCacheError = false
+            });
         }
 
         [Benchmark(Baseline = true)]
@@ -87,19 +97,19 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Add_Hybrid()
+        public void Add_EasyHybrid()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+                _easyHybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
         }
 
         [Benchmark]
-        public async Task Add_Hybrid_Async()
+        public async Task Add_EasyHybrid_Async()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+                await _easyHybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
         }
 
         [Benchmark]
@@ -157,16 +167,48 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Get_Hybrid()
+        public void Get_EasyHybrid()
         {
             // write single cache
-            _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
+            _easyHybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
             {
                 // don't generate correct data when couldn't find, because its already wrote!
-                var value = _hybridCache.Get<SampleModel>(ReadKeyPrefix);
+                var value = _easyHybridCache.Get<SampleModel>(ReadKeyPrefix);
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        [Benchmark]
+        public async Task Get_EasyHybrid_Async()
+        {
+            // write single cache
+            await _easyHybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
+
+            // read cache
+            for (var i = 0; i < RepeatCount; i++)
+            {
+                // don't generate correct data when couldn't find, because its already wrote!
+                var value = await _easyHybridCache.GetAsync<SampleModel>(ReadKeyPrefix);
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+        [Benchmark]
+        public void Get_Hybrid()
+        {
+            // write single cache
+            _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), true);
+
+            // read cache
+            for (var i = 0; i < RepeatCount; i++)
+            {
+                // don't generate correct data when couldn't find, because its already wrote!
+                var value = _easyHybridCache.Get<SampleModel>(ReadKeyPrefix);
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
             }
@@ -176,7 +218,7 @@ namespace RedisCache.Benchmark
         public async Task Get_Hybrid_Async()
         {
             // write single cache
-            await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
+            await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), true);
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
