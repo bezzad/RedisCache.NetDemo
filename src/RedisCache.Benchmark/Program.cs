@@ -2,52 +2,98 @@
 using BenchmarkDotNet.Attributes;
 using RedisCache.Benchmark;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-Console.WriteLine("Redis vs. Memory cache performance benchmark");
-
-#if DEBUG
-
-var sw = new System.Diagnostics.Stopwatch();
-var manager = new BenchmarkManager();
-manager.GlobalSetup();
-manager.RepeatCount = 1000;
-Console.WriteLine($"Repeating each test {manager.RepeatCount} times");
-Console.WriteLine("\n");
-Console.WriteLine(new string('-', 91));
-var headerDesc = "|".PadRight(18) + "Test Method Name".PadRight(32) + "|  Duration (milisecond)".PadRight(24) + "  |  Is Async?  |";
-Console.WriteLine(headerDesc);
-
-var methods = typeof(BenchmarkManager).GetMethods(BindingFlags.Public | BindingFlags.Instance);
-foreach (var method in methods)
+public class Program
 {
-    if (method.GetCustomAttribute(typeof(BenchmarkAttribute)) != null)
+    static BenchmarkManager Manager = new () { RepeatCount = 1000 };
+
+    private static async Task Main()
     {
-        Console.WriteLine(new string('-', 91));
-        var isAsync = false;
-        sw.Restart();
-        if (method.ReturnType == typeof(Task))
-        {
-            isAsync = true;
-            var task = (Task)method.Invoke(manager, null);
-            await task;
-        }
-        else
-        {
-            method.Invoke(manager, null);
-        }
-        sw.Stop();
-
-        var leftDesc = $"| {method.Name}() tested. ".PadRight(50);
-        var rightDesc = $"|   {sw.Elapsed.TotalMilliseconds:N0}ms ".PadRight(25);
-        Console.WriteLine(leftDesc + rightDesc + $" |    {isAsync}".PadRight(15) + "|");
-    }
-}
-Console.WriteLine(new string('-', 91));
-
+        Console.WriteLine("Redis vs. Memory cache performance benchmark");
+#if !DEBUG
+        BenchmarkDotNet.Running.BenchmarkRunner.Run<BenchmarkManager>();
 #else
+        var timesOfExecutions = new Dictionary<string, double>();
+        var sw = new System.Diagnostics.Stopwatch();
+        Manager.GlobalSetup();
 
-BenchmarkDotNet.Running.BenchmarkRunner.Run<BenchmarkManager>();
+        Console.WriteLine($"Repeating each test {Manager.RepeatCount} times");
+        Console.WriteLine("\n");
+        PrintHeader();
 
+        var methods = typeof(BenchmarkManager).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+        foreach (var method in methods)
+        {
+            if (method.GetCustomAttribute(typeof(BenchmarkAttribute)) != null)
+            {
+                sw.Restart();
+                if (method.ReturnType == typeof(Task))
+                {
+                    await (Task)method.Invoke(Manager, null);
+                }
+                else
+                {
+                    method.Invoke(Manager, null);
+                }
+                sw.Stop();
+                timesOfExecutions.Add(method.Name, sw.ElapsedMilliseconds);
+                PrintBenchmark(method.Name, sw.ElapsedMilliseconds);
+            }
+        }
+        PrintSortedResult(timesOfExecutions);
 #endif
+    }
+
+
+    public static void ClearConsole()
+    {
+        Console.SetCursorPosition(0, 0);
+        Console.CursorVisible = false;
+        for (int y = 0; y < Console.BufferHeight; y++)
+            Console.Write(new String(' ', Console.WindowWidth));
+        Console.SetCursorPosition(0, 0);
+        Console.CursorVisible = true;
+    }
+
+    
+    private static void PrintSortedResult(Dictionary<string, double> methodDurations)
+    {
+        ClearHost();
+        PrintHeader();
+        foreach (var method in methodDurations.OrderBy(m=> m.Value))
+        {
+            PrintBenchmark(method.Key, method.Value);
+        }
+        PrintLine();
+    }
+
+    private static void PrintHeader() 
+    {
+        PrintLine();
+        var headerDesc = "|".PadRight(18) + "Test Method Name".PadRight(32) + "|  Duration (milisecond)".PadRight(24) + "  |";
+        Console.WriteLine(headerDesc);
+    }
+
+    private static void PrintBenchmark(string method, double durMs)
+    {
+        PrintLine();
+        var leftDesc = $"| {method} ".PadRight(50);
+        var rightDesc = $"|   {durMs:N0}ms ".PadRight(25);
+        Console.WriteLine(leftDesc + rightDesc + $" |");
+    }
+
+    private static void PrintLine()
+    {
+        Console.WriteLine(" " + new string('-', 75));
+    }
+
+    public static void ClearHost()
+    {
+        Console.Write("\f\u001bc\x1b[3J");
+    }
+
+}
