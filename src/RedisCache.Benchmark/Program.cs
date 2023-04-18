@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    static BenchmarkManager Manager = new () { RepeatCount = 1000 };
+    static BenchmarkManager Manager = new() { RepeatCount = 1000 };
 
     private static async Task Main()
     {
-        Console.WriteLine("Redis vs. Memory cache performance benchmark");
+        Console.Title = "Redis vs. Mem cache benchmark";
+
 #if !DEBUG
         BenchmarkDotNet.Running.BenchmarkRunner.Run<BenchmarkManager>();
 #else
@@ -59,19 +60,19 @@ public class Program
         Console.CursorVisible = true;
     }
 
-    
+
     private static void PrintSortedResult(Dictionary<string, double> methodDurations)
     {
         ClearHost();
         PrintHeader();
-        foreach (var method in methodDurations.OrderBy(m=> m.Value))
+        foreach (var method in methodDurations.OrderBy(m => m.Key.Substring(0,3)).ThenBy(m => m.Value))
         {
             PrintBenchmark(method.Key, method.Value);
         }
         PrintLine();
     }
 
-    private static void PrintHeader() 
+    private static void PrintHeader()
     {
         PrintLine();
         var headerDesc = "|".PadRight(18) + "Test Method Name".PadRight(32) + "|  Duration (milisecond)".PadRight(24) + "  |";

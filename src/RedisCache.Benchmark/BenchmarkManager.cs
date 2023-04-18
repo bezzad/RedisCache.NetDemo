@@ -113,6 +113,22 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
+        public void Add_Hybrid()
+        {
+            // write cache
+            for (var i = 0; i < RepeatCount; i++)
+                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+        }
+
+        [Benchmark]
+        public async Task Add_Hybrid_Async()
+        {
+            // write cache
+            for (var i = 0; i < RepeatCount; i++)
+                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+        }
+
+        [Benchmark]
         public void Get_Memory()
         {
             // write single cache
