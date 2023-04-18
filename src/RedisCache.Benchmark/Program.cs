@@ -47,6 +47,7 @@ public class Program
         }
         PrintSortedResult(timesOfExecutions);
 #endif
+        Console.ReadLine();
     }
 
 

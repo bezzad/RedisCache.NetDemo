@@ -117,7 +117,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), true);
         }
 
         [Benchmark]
@@ -125,7 +125,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond));
+                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), true);
         }
 
         [Benchmark]
