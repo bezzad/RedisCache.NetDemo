@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,7 +12,7 @@
     <PackageReference Include="EasyCaching.InMemory" Version="1.9.0" />
     <PackageReference Include="EasyCaching.Redis" Version="1.9.0" />
     <PackageReference Include="EasyCaching.Serialization.Json" Version="1.9.0" />
-    <PackageReference Include="HybridRedisCache" Version="1.0.4" />
+    <PackageReference Include="HybridRedisCache" Version="1.0.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
   </ItemGroup>
 

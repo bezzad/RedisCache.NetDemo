@@ -42,7 +42,8 @@ namespace RedisCache.Benchmark
             _hybridCache = new HybridCache(new HybridCachingOptions()
             {
                 InstanceName = nameof(BenchmarkManager),
-                DefaultExpirationTime = TimeSpan.FromDays(1),
+                DefaultDistributedExpirationTime = TimeSpan.FromDays(1),
+                DefaultLocalExpirationTime = TimeSpan.FromMinutes(10),
                 RedisCacheConnectString = $"{redisIP}:{redisPort}",
                 ThrowIfDistributedCacheError = false
             });
@@ -117,7 +118,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), true);
+                _hybridCache.Set(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
         }
 
         [Benchmark]
@@ -125,7 +126,7 @@ namespace RedisCache.Benchmark
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
-                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), true);
+                await _hybridCache.SetAsync(KeyPrefix + i, _data[i], TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
         }
 
         [Benchmark]
@@ -218,7 +219,7 @@ namespace RedisCache.Benchmark
         public void Get_Hybrid()
         {
             // write single cache
-            _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), true);
+            _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
@@ -234,7 +235,7 @@ namespace RedisCache.Benchmark
         public async Task Get_Hybrid_Async()
         {
             // write single cache
-            await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), true);
+            await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
 
             // read cache
             for (var i = 0; i < RepeatCount; i++)
