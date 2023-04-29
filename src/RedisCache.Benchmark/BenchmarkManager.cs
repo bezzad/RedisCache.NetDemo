@@ -50,7 +50,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark(Baseline = true)]
-        public void Add_Memory()
+        public void Add_InMemory()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -58,7 +58,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Add_Memory_Async()
+        public async Task Add_InMemory_Async()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -82,7 +82,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Add_FireAndForget_Redis()
+        public void Add_Redis_With_FireAndForget()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -90,7 +90,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Add_FireAndForget_Redis_Async()
+        public async Task Add_Redis_With_FireAndForget_Async()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -98,7 +98,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Add_EasyHybrid()
+        public void Add_EasyCache_Hybrid()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -106,7 +106,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Add_EasyHybrid_Async()
+        public async Task Add_EasyCache_Hybrid_Async()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -114,7 +114,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Add_Hybrid()
+        public void Add_HybridRedisCache()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -122,7 +122,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Add_Hybrid_Async()
+        public async Task Add_HybridRedisCache_Async()
         {
             // write cache
             for (var i = 0; i < RepeatCount; i++)
@@ -130,7 +130,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Get_Memory()
+        public void Get_InMemory()
         {
             // write single cache
             _memCache.Set(ReadKeyPrefix, _singleModel.Value, DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
@@ -142,7 +142,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Get_Memory_Async()
+        public async Task Get_InMemory_Async()
         {
             // write single cache
             _memCache.Set(ReadKeyPrefix, JsonSerializer.Serialize(_singleModel.Value), DateTimeOffset.Now.AddSeconds(ExpireDurationSecond));
@@ -184,7 +184,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Get_EasyHybrid()
+        public void Get_EasyCache_Hybrid()
         {
             // write single cache
             _easyHybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
@@ -200,7 +200,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Get_EasyHybrid_Async()
+        public async Task Get_EasyCache_Hybrid_Async()
         {
             // write single cache
             await _easyHybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond));
@@ -216,7 +216,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public void Get_Hybrid()
+        public void Get_HybridRedisCache()
         {
             // write single cache
             _hybridCache.Set(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
@@ -232,7 +232,7 @@ namespace RedisCache.Benchmark
         }
 
         [Benchmark]
-        public async Task Get_Hybrid_Async()
+        public async Task Get_HybridRedisCache_Async()
         {
             // write single cache
             await _hybridCache.SetAsync(ReadKeyPrefix, _singleModel.Value, TimeSpan.FromSeconds(ExpireDurationSecond), fireAndForget: true);
